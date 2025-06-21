@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRCL - Circle Stock Analysis Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .ticker-info {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .info-card .label {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        .info-card .value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: #00ff88;
+            font-size: 1.3em;
+        }
+        
+        .chart-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            background: #000;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-card h4 {
+            color: #88c0ff;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .metric-card .score {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .score-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #44ff44);
+            transition: width 0.5s ease;
+        }
+        
+        .analysis-section {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .analysis-section h2 {
+            color: #00ff88;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        .indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .indicator {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .indicator .name {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .indicator .value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        .bullish { color: #44ff44; }
+        .bearish { color: #ff4444; }
+        .neutral { color: #ffaa00; }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .loading-indicator {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CRCL - Circle Stock Analysis</h1>
+            <p style="font-size: 1.2em; color: #888;">Real-time Technical Analysis & Market Indicators</p>
+            
+            <div class="ticker-info">
+                <div class="info-card">
+                    <div class="label">Current Price</div>
+                    <div class="value" id="current-price">$240.28</div>
+                </div>
+                <div class="info-card">
+                    <div class="label">Market Cap</div>
+                    <div class="value">$43.75B</div>
+                </div>
+                <div class="info-card">
+                    <div class="label">Float</div>
+                    <div class="value">202.55M</div>
+                </div>
+                <div class="info-card">
+                    <div class="label">Last Updated</div>
+                    <div class="value" id="last-updated">Loading...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h4>Composite Score</h4>
+                <div class="score">24.5</div>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: 24.5%"></div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <h4>Technical Score</h4>
+                <div class="score">47.0</div>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: 47%"></div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <h4>Social Sentiment</h4>
+                <div class="score">27.0</div>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: 27%"></div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <h4>Risk Level</h4>
+                <div class="score neutral">MEDIUM</div>
+            </div>
+        </div>
+        
+        <div class="analysis-section">
+            <h2>Technical Indicators</h2>
+            <div class="indicator-grid">
+                <div class="indicator">
+                    <div class="name">RSI (14)</div>
+                    <div class="value neutral">50.0</div>
+                </div>
+                <div class="indicator">
+                    <div class="name">MACD Signal</div>
+                    <div class="value neutral">NEUTRAL</div>
+                </div>
+                <div class="indicator">
+                    <div class="name">Trend</div>
+                    <div class="value neutral">NEUTRAL</div>
+                </div>
+                <div class="indicator">
+                    <div class="name">Volume Trend</div>
+                    <div class="value">Average</div>
+                </div>
+            </div>
+        </div>
+        
+        <h2 style="color: #00ff88; margin: 30px 0;">Technical Charts</h2>
+        
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3>Daily Technical Analysis</h3>
+                <img src="https://chart-img.com/chart/CRCL?api_key=FbDe9LLTGiaqTNSQfqCga5K7ITjSjpst1fhUhz1a&symbol=CRCL&timeframe=daily&width=1000&height=700&indicators=sma20%2Csma50%2Crsi%2Cmacd%2Cbollinger_bands%2Cvolume" 
+                     alt="CRCL Daily Chart" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI3MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjODg4IiBmb250LXNpemU9IjI0Ij5DaGFydCBMb2FkaW5nLi4uPC90ZXh0Pgo8L3N2Zz4='">
+            </div>
+            
+            <div class="chart-container">
+                <h3>Weekly Trend Analysis</h3>
+                <img src="https://chart-img.com/chart/CRCL?symbol=CRCL&timeframe=weekly&width=1000&height=700&indicators=sma20%2Csma50%2Crsi%2Cmacd%2Cbollinger_bands%2Cvolume" 
+                     alt="CRCL Weekly Chart"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI3MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjODg4IiBmb250LXNpemU9IjI0Ij5DaGFydCBMb2FkaW5nLi4uPC90ZXh0Pgo8L3N2Zz4='">
+            </div>
+            
+            <div class="chart-container">
+                <h3>Pattern Recognition</h3>
+                <img src="https://chart-img.com/chart/CRCL?symbol=CRCL&timeframe=daily&width=1200&height=800&indicators=support_resistance%2Ctrend_lines%2Cvolume%2Cpattern_recognition" 
+                     alt="CRCL Pattern Analysis"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI3MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjODg4IiBmb250LXNpemU9IjI0Ij5DaGFydCBMb2FkaW5nLi4uPC90ZXh0Pgo8L3N2Zz4='">
+            </div>
+            
+            <div class="chart-container">
+                <h3>Short Squeeze Analysis</h3>
+                <img src="https://chart-img.com/chart/CRCL?symbol=CRCL&timeframe=daily&width=1000&height=700&indicators=volume%2Cshort_volume%2Cbollinger_bands%2Crsi%2Cmacd" 
+                     alt="CRCL Squeeze Analysis"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI3MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjODg4IiBmb250LXNpemU9IjI0Ij5DaGFydCBMb2FkaW5nLi4uPC90ZXh0Pgo8L3N2Zz4='">
+            </div>
+            
+            <div class="chart-container">
+                <h3>Intraday (1H) Movement</h3>
+                <img src="https://chart-img.com/chart/CRCL?symbol=CRCL&timeframe=1h&width=1000&height=700&indicators=sma20%2Csma50%2Crsi%2Cmacd%2Cbollinger_bands%2Cvolume" 
+                     alt="CRCL Intraday Chart"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI3MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjODg4IiBmb250LXNpemU9IjI0Ij5DaGFydCBMb2FkaW5nLi4uPC90ZXh0Pgo8L3N2Zz4='">
+            </div>
+            
+            <div class="chart-container">
+                <h3>Social Sentiment Overlay</h3>
+                <img src="https://chart-img.com/chart/CRCL?symbol=CRCL&timeframe=daily&width=1000&height=700&indicators=price%2Cvolume%2Csocial_sentiment%2Cmentions_volume" 
+                     alt="CRCL Social Sentiment"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI3MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjODg4IiBmb250LXNpemU9IjI0Ij5DaGFydCBMb2FkaW5nLi4uPC90ZXh0Pgo8L3N2Zz4='">
+            </div>
+        </div>
+        
+        <div class="analysis-section">
+            <h2>Analysis Summary</h2>
+            <p style="font-size: 1.1em; line-height: 1.8;">
+                CRCL (Circle) is currently showing <span class="neutral">neutral</span> technical indicators with an RSI of 50.0 
+                and price at $240.28. The stock has a market cap of $43.75B with a float of 202.55M shares.
+            </p>
+            <p style="margin-top: 15px; font-size: 1.1em; line-height: 1.8;">
+                <strong>Key Points:</strong><br>
+                • Technical indicators are neutral, suggesting consolidation<br>
+                • Low social sentiment score due to limited Reddit/Twitter data<br>
+                • Charts will show if bullish patterns are forming<br>
+                • Monitor for increased volume and momentum indicators
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Update timestamp
+        document.getElementById('last-updated').textContent = new Date().toLocaleString();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            location.reload();
+        }, 300000);
+        
+        // Add loading animation for images
+        document.querySelectorAll('img').forEach(img => {
+            img.classList.add('loading-indicator');
+            img.onload = function() {
+                this.classList.remove('loading-indicator');
+            };
+        });
+    </script>
+</body>
+</html>
