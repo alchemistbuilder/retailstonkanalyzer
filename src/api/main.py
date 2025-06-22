@@ -1,13 +1,18 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 import asyncio
 from datetime import datetime
+from pathlib import Path
 
 from ..core.stock_analyzer import StockAnalyzer, WatchlistAnalyzer
 from ..models.stock_data import StockAnalysis
 from ..core.config import settings
+from .watchlist_api import router as watchlist_router
+from ..services.enhanced_analysis_generator import EnhancedAnalysisGenerator
 
 app = FastAPI(
     title="Retail Meme Stock Analyzer",
@@ -24,9 +29,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(watchlist_router)
+
+# Mount static files for analysis pages
+analysis_dir = Path("analysis_pages")
+analysis_dir.mkdir(exist_ok=True)
+app.mount("/analysis", StaticFiles(directory=str(analysis_dir), html=True), name="analysis")
+
 # Initialize analyzers
 stock_analyzer = StockAnalyzer()
 watchlist_analyzer = WatchlistAnalyzer()
+analysis_generator = EnhancedAnalysisGenerator()
 
 # Global storage for latest analysis results (in production, use Redis/database)
 latest_analyses: Dict[str, StockAnalysis] = {}
@@ -162,99 +176,10 @@ async def perform_watchlist_scan():
         print(f"Error in watchlist scan: {e}")
 
 
-@app.get("/stock/{symbol}")
-async def get_stock_analysis(symbol: str):
-    """Get detailed analysis for a specific stock"""
-    symbol = symbol.upper()
-    
-    if symbol not in latest_analyses:
-        # If not in cache, analyze on demand
-        analysis = await stock_analyzer.analyze_stock(symbol)
-        if analysis:
-            latest_analyses[symbol] = analysis
-        else:
-            raise HTTPException(status_code=404, detail=f"Could not analyze stock {symbol}")
-    
-    analysis = latest_analyses[symbol]
-    
-    return {
-        "symbol": analysis.symbol,
-        "company_name": analysis.company_name,
-        "sector": analysis.sector,
-        "industry": analysis.industry,
-        "social_sentiment": {
-            "platform": analysis.social_sentiment.platform,
-            "mentions": analysis.social_sentiment.mentions,
-            "sentiment_score": analysis.social_sentiment.sentiment_score,
-            "volume_trend": analysis.social_sentiment.volume_trend.value,
-            "top_keywords": analysis.social_sentiment.top_keywords,
-            "influencer_mentions": analysis.social_sentiment.influencer_mentions
-        },
-        "technical_analysis": {
-            "price": analysis.technical_analysis.price,
-            "volume": analysis.technical_analysis.volume,
-            "rsi": analysis.technical_analysis.rsi,
-            "macd_signal": analysis.technical_analysis.macd_signal,
-            "bollinger_position": analysis.technical_analysis.bollinger_position,
-            "pattern_detected": analysis.technical_analysis.pattern_detected,
-            "pattern_confidence": analysis.technical_analysis.pattern_confidence,
-            "trend_direction": analysis.technical_analysis.trend_direction.value,
-            "volume_spike": analysis.technical_analysis.volume_spike,
-            "chart_images": analysis.technical_analysis.chart_images
-        },
-        "fundamental_data": {
-            "market_cap": analysis.fundamental_data.market_cap,
-            "pe_ratio": analysis.fundamental_data.pe_ratio,
-            "ps_ratio": analysis.fundamental_data.ps_ratio,
-            "revenue_growth_yoy": analysis.fundamental_data.revenue_growth_yoy,
-            "profit_margin": analysis.fundamental_data.profit_margin,
-            "debt_to_equity": analysis.fundamental_data.debt_to_equity,
-            "current_ratio": analysis.fundamental_data.current_ratio,
-            "roe": analysis.fundamental_data.roe
-        },
-        "analyst_coverage": {
-            "consensus_rating": analysis.analyst_coverage.consensus_rating.value,
-            "num_analysts": analysis.analyst_coverage.num_analysts,
-            "avg_price_target": analysis.analyst_coverage.avg_price_target,
-            "price_target_upside": analysis.analyst_coverage.price_target_upside,
-            "recent_upgrades": analysis.analyst_coverage.recent_upgrades,
-            "recent_downgrades": analysis.analyst_coverage.recent_downgrades
-        },
-        "stock_structure": {
-            "shares_outstanding": analysis.stock_structure.shares_outstanding,
-            "float_shares": analysis.stock_structure.float_shares,
-            "short_interest": analysis.stock_structure.short_interest,
-            "cost_to_borrow": analysis.stock_structure.cost_to_borrow,
-            "utilization_rate": analysis.stock_structure.utilization_rate,
-            "institutional_ownership": analysis.stock_structure.institutional_ownership,
-            "short_squeeze_score": analysis.stock_structure.short_squeeze_score
-        },
-        "composite_score": {
-            "total_score": analysis.composite_score.total_score,
-            "social_score": analysis.composite_score.social_score,
-            "technical_score": analysis.composite_score.technical_score,
-            "fundamental_score": analysis.composite_score.fundamental_score,
-            "analyst_score": analysis.composite_score.analyst_score,
-            "structure_score": analysis.composite_score.structure_score,
-            "risk_level": analysis.composite_score.risk_level,
-            "opportunity_type": analysis.composite_score.opportunity_type,
-            "confidence_level": analysis.composite_score.confidence_level
-        },
-        "alerts": [
-            {
-                "type": alert.alert_type,
-                "priority": alert.priority,
-                "reason": alert.trigger_reason,
-                "score": alert.score,
-                "timestamp": alert.timestamp.isoformat(),
-                "chart_image_url": alert.chart_image_url
-            } for alert in analysis.alerts
-        ],
-        "last_updated": analysis.last_updated.isoformat()
-    }
+# Moved to /api/stock/{symbol} for JSON data
 
 
-@app.get("/watchlist", response_model=List[StockSummary])
+@app.get("/api/watchlist-summary", response_model=List[StockSummary])
 async def get_watchlist_summary():
     """Get summary of all stocks in watchlist"""
     summaries = []
@@ -356,6 +281,63 @@ async def get_status():
             "chart_img": bool(getattr(settings, 'chart_img_api_key', None))
         }
     }
+
+
+# Watchlist Dashboard Route (HTML)
+@app.get("/watchlist", response_class=HTMLResponse)
+async def get_watchlist_dashboard():
+    """Serve the watchlist dashboard"""
+    try:
+        with open("watchlist_dashboard.html", "r", encoding="utf-8") as f:
+            content = f.read()
+        return HTMLResponse(content=content)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Watchlist dashboard not found")
+
+
+# Generate Analysis Page Route
+@app.post("/generate-analysis/{symbol}")
+async def generate_analysis_page(symbol: str, background_tasks: BackgroundTasks):
+    """Generate an analysis page for a specific symbol"""
+    try:
+        # Generate in background
+        background_tasks.add_task(analysis_generator.generate_analysis_page, symbol.upper())
+        
+        return {
+            "success": True,
+            "message": f"Analysis page generation started for {symbol}",
+            "symbol": symbol.upper()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating analysis: {str(e)}")
+
+
+# Generate All Watchlist Analyses
+@app.post("/generate-all-analyses")
+async def generate_all_analyses(background_tasks: BackgroundTasks):
+    """Generate analysis pages for all watchlist stocks"""
+    try:
+        background_tasks.add_task(analysis_generator.generate_all_watchlist_pages)
+        
+        return {
+            "success": True,
+            "message": "Analysis generation started for all watchlist stocks"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating analyses: {str(e)}")
+
+
+# Serve analysis page directly
+@app.get("/stock/{symbol}", response_class=HTMLResponse)
+async def get_analysis_page(symbol: str):
+    """Serve the analysis page for a specific stock"""
+    try:
+        analysis_file = f"analysis_pages/{symbol.lower()}_analysis.html"
+        with open(analysis_file, "r", encoding="utf-8") as f:
+            content = f.read()
+        return HTMLResponse(content=content)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Analysis page for {symbol} not found. Try generating it first.")
 
 
 if __name__ == "__main__":

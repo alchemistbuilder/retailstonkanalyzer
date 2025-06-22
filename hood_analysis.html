@@ -328,7 +328,7 @@
                 </div>
                 <div class="metric-card">
                     <div class="label">Market Cap</div>
-                    <div class="value">$69.27B</div>
+                    <div class="value" id="market-cap">Loading...</div>
                 </div>
                 <div class="metric-card">
                     <div class="label">RSI (14)</div>
@@ -349,11 +349,110 @@
                     <div class="value">Double Bottom</div>
                     <div class="change"><span class="tag bullish">Bullish</span></div>
                 </div>
+                <div class="metric-card">
+                    <div class="label">Last Updated</div>
+                    <div class="value" id="last-updated">Loading...</div>
+                </div>
             </div>
         </section>
         
         <section class="section">
-            <h2 class="section-title">Live Market Data</h2>
+            <h2 class="section-title">Market Overview</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 40px;">
+                <div class="chart-container" style="margin-bottom: 0;">
+                    <h3 class="chart-title">S&P 500 (SPX)</h3>
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                        {
+                            "symbol": "OANDA:SPX500USD",
+                            "width": "100%",
+                            "height": "200",
+                            "locale": "en",
+                            "dateRange": "1M",
+                            "colorTheme": "dark",
+                            "isTransparent": false,
+                            "autosize": true,
+                            "largeChartUrl": ""
+                        }
+                        </script>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="margin-bottom: 0;">
+                    <h3 class="chart-title">NASDAQ 100 (NDX)</h3>
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                        {
+                            "symbol": "NASDAQ:NDX",
+                            "width": "100%",
+                            "height": "200",
+                            "locale": "en",
+                            "dateRange": "1M",
+                            "colorTheme": "dark",
+                            "isTransparent": false,
+                            "autosize": true,
+                            "largeChartUrl": ""
+                        }
+                        </script>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="margin-bottom: 0;">
+                    <h3 class="chart-title">Bitcoin (BTC)</h3>
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                        {
+                            "symbol": "BITSTAMP:BTCUSD",
+                            "width": "100%",
+                            "height": "200",
+                            "locale": "en",
+                            "dateRange": "1M",
+                            "colorTheme": "dark",
+                            "isTransparent": false,
+                            "autosize": true,
+                            "largeChartUrl": ""
+                        }
+                        </script>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="analysis-card" style="margin-bottom: 32px;">
+                <h3>Market Context Analysis</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 16px;">
+                    <div>
+                        <h4>Market Environment</h4>
+                        <ul>
+                            <li><strong>SPX Trend:</strong> Overall market direction and sentiment</li>
+                            <li><strong>NDX Performance:</strong> Tech sector leadership and growth stock health</li>
+                            <li><strong>Market Breadth:</strong> Risk-on vs risk-off environment</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Risk Asset Correlation</h4>
+                        <ul>
+                            <li><strong>BTC Trend:</strong> Risk-on sentiment and crypto correlation</li>
+                            <li><strong>Fintech Sector:</strong> Digital payments momentum</li>
+                            <li><strong>Growth Rotation:</strong> Value vs growth preferences</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px; padding: 12px; background: rgba(88, 166, 255, 0.05); border-radius: 6px; border-left: 3px solid #58a6ff;">
+                    <p style="font-size: 0.9rem;"><strong>Market Context for HOOD:</strong> 
+                    Strong BTC correlation supports fintech sentiment. NDX outperformance favors growth stocks. 
+                    Monitor SPX trend for overall risk appetite and sector rotation dynamics.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2 class="section-title">Live Stock Data</h2>
             
             <div class="chart-container">
                 <h3 class="chart-title">Advanced Chart Analysis</h3>
@@ -749,5 +848,60 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        // Function to format market cap
+        function formatMarketCap(value) {
+            if (value >= 1e12) {
+                return '$' + (value / 1e12).toFixed(2) + 'T';
+            } else if (value >= 1e9) {
+                return '$' + (value / 1e9).toFixed(2) + 'B';
+            } else if (value >= 1e6) {
+                return '$' + (value / 1e6).toFixed(2) + 'M';
+            } else {
+                return '$' + value.toFixed(2);
+            }
+        }
+        
+        // Fetch live data from our API
+        async function updateLiveData() {
+            try {
+                const response = await fetch('http://localhost:8000/analyze/HOOD');
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update market cap if available
+                    if (data.fundamental_analysis && data.fundamental_analysis.market_cap) {
+                        const marketCapElement = document.getElementById('market-cap');
+                        marketCapElement.textContent = formatMarketCap(data.fundamental_analysis.market_cap);
+                    }
+                    
+                    // Update last updated time
+                    document.getElementById('last-updated').textContent = new Date().toLocaleString();
+                } else {
+                    console.log('API not available, using static data');
+                    // Fallback to static data
+                    document.getElementById('market-cap').textContent = '$69.27B';
+                }
+            } catch (error) {
+                console.log('Using static data:', error.message);
+                // Fallback to static data
+                document.getElementById('market-cap').textContent = '$69.27B';
+            }
+        }
+        
+        // Update on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLiveData();
+            
+            // Update every 30 seconds
+            setInterval(updateLiveData, 30000);
+        });
+        
+        // Add a refresh button functionality
+        function refreshData() {
+            updateLiveData();
+        }
+    </script>
 </body>
 </html>
