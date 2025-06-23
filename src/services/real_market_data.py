@@ -164,13 +164,15 @@ class RealMarketDataService:
             financials_data = await self._get_fmp_financials(symbol)
             ratios_data = await self._get_fmp_ratios(symbol)
             earnings_data = await self._get_fmp_earnings(symbol)
+            key_metrics_data = await self._get_fmp_key_metrics(symbol)
             
             # Combine all data
             return {
                 **profile_data,
                 **financials_data,
                 **ratios_data,
-                **earnings_data
+                **earnings_data,
+                **key_metrics_data
             }
         except Exception as e:
             logger.error(f"Error fetching fundamental data for {symbol}: {str(e)}")
@@ -296,6 +298,84 @@ class RealMarketDataService:
                             }
         except Exception as e:
             logger.error(f"Error fetching earnings for {symbol}: {str(e)}")
+        return {}
+    
+    async def _get_fmp_key_metrics(self, symbol: str) -> Dict[str, Any]:
+        """Get comprehensive key metrics for company-specific drivers"""
+        try:
+            # Get key metrics (quarterly)
+            metrics_url = f"https://financialmodelingprep.com/api/v3/key-metrics/{symbol}"
+            
+            # Get enterprise values 
+            ev_url = f"https://financialmodelingprep.com/api/v3/enterprise-values/{symbol}"
+            
+            # Get financial growth
+            growth_url = f"https://financialmodelingprep.com/api/v3/financial-growth/{symbol}"
+            
+            params = {'period': 'quarter', 'limit': 4, 'apikey': self.fmp_api_key}
+            
+            async with aiohttp.ClientSession() as session:
+                # Get key metrics
+                async with session.get(metrics_url, params=params) as response:
+                    metrics_data = []
+                    if response.status == 200:
+                        metrics_data = await response.json()
+                
+                # Get enterprise values
+                async with session.get(ev_url, params=params) as response:
+                    ev_data = []
+                    if response.status == 200:
+                        ev_data = await response.json()
+                
+                # Get financial growth
+                async with session.get(growth_url, params=params) as response:
+                    growth_data = []
+                    if response.status == 200:
+                        growth_data = await response.json()
+                
+                result = {}
+                
+                if metrics_data and len(metrics_data) > 0:
+                    latest_metrics = metrics_data[0]
+                    result.update({
+                        'revenue_per_share': latest_metrics.get('revenuePerShare'),
+                        'net_income_per_share': latest_metrics.get('netIncomePerShare'),
+                        'operating_cash_flow_per_share': latest_metrics.get('operatingCashFlowPerShare'),
+                        'free_cash_flow_per_share': latest_metrics.get('freeCashFlowPerShare'),
+                        'cash_per_share': latest_metrics.get('cashPerShare'),
+                        'book_value_per_share': latest_metrics.get('bookValuePerShare'),
+                        'tangible_book_value_per_share': latest_metrics.get('tangibleBookValuePerShare'),
+                        'shareholders_equity_per_share': latest_metrics.get('shareholdersEquityPerShare'),
+                        'debt_to_equity': latest_metrics.get('debtToEquity'),
+                        'debt_to_assets': latest_metrics.get('debtToAssets'),
+                        'working_capital': latest_metrics.get('workingCapital'),
+                        'invested_capital': latest_metrics.get('investedCapital')
+                    })
+                
+                if ev_data and len(ev_data) > 0:
+                    latest_ev = ev_data[0]
+                    result.update({
+                        'enterprise_value': latest_ev.get('enterpriseValue'),
+                        'enterprise_value_over_ebitda': latest_ev.get('enterpriseValueOverEBITDA')
+                    })
+                
+                if growth_data and len(growth_data) > 0:
+                    latest_growth = growth_data[0]
+                    result.update({
+                        'revenue_growth': latest_growth.get('revenueGrowth'),
+                        'gross_profit_growth': latest_growth.get('grossProfitGrowth'),
+                        'ebitda_growth': latest_growth.get('ebitdaGrowth'),
+                        'operating_income_growth': latest_growth.get('operatingIncomeGrowth'),
+                        'net_income_growth': latest_growth.get('netIncomeGrowth'),
+                        'eps_growth': latest_growth.get('epsgrowth'),
+                        'operating_cash_flow_growth': latest_growth.get('operatingCashFlowGrowth'),
+                        'free_cash_flow_growth': latest_growth.get('freeCashFlowGrowth')
+                    })
+                
+                return result
+                
+        except Exception as e:
+            logger.error(f"Error fetching key metrics for {symbol}: {str(e)}")
         return {}
     
     def _calculate_growth(self, data_list: list, field: str) -> float:

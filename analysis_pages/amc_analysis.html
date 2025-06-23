@@ -291,6 +291,42 @@
         .bearish { background: rgba(248, 81, 73, 0.2); color: #f85149; }
         .neutral { background: rgba(240, 136, 62, 0.2); color: #f0883e; }
         
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #1e2936;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #8b949e;
+            flex: 1;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: #ffffff;
+            text-align: right;
+        }
+        
+        .metric-value.positive {
+            color: #2ea043;
+        }
+        
+        .metric-value.negative {
+            color: #f85149;
+        }
+        
+        .metric-card-small {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #1e2936;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        
         .market-context {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1091,6 +1127,144 @@
             </div>
         </section>
         
+        
+        <section class="section">
+            <h2 class="section-title">📊 Fundamental Analysis</h2>
+            
+            <div class="analysis-card" style="margin-bottom: 32px;">
+                <h3>Financial Performance Overview</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px;">
+                    
+                    <div class="financial-metrics">
+                        <h4 style="color: #58a6ff; margin-bottom: 16px;">📈 Revenue & Earnings</h4>
+                        <div class="metric-row">
+                            <span class="metric-label">Latest Quarterly Revenue (2025-03):</span>
+                            <span class="metric-value">$862.5M</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Annual Revenue (2024):</span>
+                            <span class="metric-value">$4.6B</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Latest Quarterly Profit:</span>
+                            <span class="metric-value">$-202100.0K</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Annual Profit:</span>
+                            <span class="metric-value">$-352600.0K</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Revenue Growth (QoQ):</span>
+                            <span class="metric-value negative">-34.0%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="valuation-metrics">
+                        <h4 style="color: #f0883e; margin-bottom: 16px;">💰 Valuation Metrics</h4>
+                        <div class="metric-row">
+                            <span class="metric-label">Market Capitalization:</span>
+                            <span class="metric-value">$1.3B</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Enterprise Value:</span>
+                            <span class="metric-value">$9.2B</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Price-to-Earnings (P/E) Ratio:</span>
+                            <span class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">EV-to-Sales Ratio:</span>
+                            <span class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Revenue Multiple:</span>
+                            <span class="metric-value">0.3x</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analysis-card" style="margin-bottom: 32px;">
+                <h3>🎯 Company-Specific Key Drivers</h3>
+                <p style="color: #8b949e; margin-bottom: 20px; font-style: italic;">AMC: Movie theater recovery and premium experience monetization</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                    
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border-left: 3px solid #58a6ff;">
+                        <h5 style="color: #58a6ff; margin-bottom: 12px; font-size: 1rem;">🔍 Box Office Recovery vs Pre-COVID</h5>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">
+                            N/A
+                        </div>
+                        <p style="font-size: 0.85rem; color: #8b949e;">Latest reported or estimated value</p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border-left: 3px solid #58a6ff;">
+                        <h5 style="color: #58a6ff; margin-bottom: 12px; font-size: 1rem;">🔍 Average Ticket Price</h5>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">
+                            N/A
+                        </div>
+                        <p style="font-size: 0.85rem; color: #8b949e;">Latest reported or estimated value</p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border-left: 3px solid #58a6ff;">
+                        <h5 style="color: #58a6ff; margin-bottom: 12px; font-size: 1rem;">🔍 Concession Revenue per Patron</h5>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">
+                            N/A
+                        </div>
+                        <p style="font-size: 0.85rem; color: #8b949e;">Latest reported or estimated value</p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border-left: 3px solid #58a6ff;">
+                        <h5 style="color: #58a6ff; margin-bottom: 12px; font-size: 1rem;">🔍 Theater Utilization Rate</h5>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">
+                            N/A
+                        </div>
+                        <p style="font-size: 0.85rem; color: #8b949e;">Latest reported or estimated value</p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border-left: 3px solid #58a6ff;">
+                        <h5 style="color: #58a6ff; margin-bottom: 12px; font-size: 1rem;">🔍 Premium Format Revenue (IMAX/Dolby)</h5>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">
+                            N/A
+                        </div>
+                        <p style="font-size: 0.85rem; color: #8b949e;">Latest reported or estimated value</p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border-left: 3px solid #58a6ff;">
+                        <h5 style="color: #58a6ff; margin-bottom: 12px; font-size: 1rem;">🔍 Debt Reduction Progress</h5>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">
+                            N/A
+                        </div>
+                        <p style="font-size: 0.85rem; color: #8b949e;">Latest reported or estimated value</p>
+                    </div>
+                    
+                </div>
+                
+                
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📈 Performance Metrics Analysis</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 20px;">
+                    
+                    <div class="metric-card-small">
+                        <div style="font-size: 0.875rem; color: #8b949e; margin-bottom: 8px;">Revenue Growth</div>
+                        <div style="font-size: 1.25rem; font-weight: 600; color: #ffffff; margin-bottom: 4px;">-34.0%</div>
+                        <div style="font-size: 0.8rem; color: #8b949e;">Quarter-over-quarter revenue growth</div>
+                    </div>
+                    
+                    <div class="metric-card-small">
+                        <div style="font-size: 0.875rem; color: #8b949e; margin-bottom: 8px;">Profit Margin</div>
+                        <div style="font-size: 1.25rem; font-weight: 600; color: #ffffff; margin-bottom: 4px;">-23.4%</div>
+                        <div style="font-size: 0.8rem; color: #8b949e;">Net profit margin (latest quarter)</div>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>
+        
+        
         <section class="section">
             <h2 class="section-title">🎯 Trading Strategy</h2>
             <div class="analysis-card">
@@ -1109,7 +1283,7 @@
         </section>
         
         <div style="padding: 40px 0; text-align: center; color: #8b949e; border-top: 1px solid #1e2936;">
-            <p>Analysis generated: 2025-06-22 01:15:36 EST</p>
+            <p>Analysis generated: 2025-06-22 20:12:42 EST</p>
             <p style="margin-top: 8px;">
                 <a href="/api/watchlist/refresh/AMC" style="color: #58a6ff; text-decoration: none;">🔄 Refresh Data</a> | 
                 <a href="/watchlist" style="color: #58a6ff; text-decoration: none;">📊 Back to Watchlist</a>

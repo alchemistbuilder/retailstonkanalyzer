@@ -265,11 +265,14 @@ class EnhancedAnalysisGenerator:
                 <h3>🎯 Company-Specific Key Drivers</h3>
                 <p style="color: #8b949e; margin-bottom: 20px; font-style: italic;">{key_drivers_analysis.get('description', '')}</p>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px;">
                     {''.join([f'''
-                    <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border-left: 3px solid #58a6ff;">
-                        <h5 style="color: #58a6ff; margin-bottom: 8px;">🔍 {driver}</h5>
-                        <p style="font-size: 0.9rem; color: #8b949e;">Key performance indicator for business growth</p>
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border-left: 3px solid #58a6ff;">
+                        <h5 style="color: #58a6ff; margin-bottom: 12px; font-size: 1rem;">🔍 {driver}</h5>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">
+                            {key_drivers_analysis.get('key_driver_values', {}).get(driver, 'N/A')}
+                        </div>
+                        <p style="font-size: 0.85rem; color: #8b949e;">Latest reported or estimated value</p>
                     </div>
                     ''' for driver in key_drivers_analysis.get('key_drivers', [])])}
                 </div>
